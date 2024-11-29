@@ -1,12 +1,12 @@
-package main
+package aoc
 
 import (
 	"fmt"
 
-	"github.com/igorwulff/aoc/internal"
+	internal "github.com/igorwulff/aoc/internal"
 )
 
-func main() {
+func Run() {
 	args := internal.ProcessArgs()
 
 	plugin := internal.PluginProcessor{Args: args}
