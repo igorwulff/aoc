@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"igorwulff.com/aoc/internal"
+	"github.com/igorwulff/aoc/internal"
 )
 
 func main() {
