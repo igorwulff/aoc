@@ -9,25 +9,22 @@ import (
 )
 
 type Args struct {
-	day   string
-	part  string
-	input string // sample or input
-	year  string
-	path  string // plugin path
+	day  string
+	part string
+	year string
+	path string // plugin path
 }
 
 func ProcessArgs() Args {
 	year := flag.String("year", fmt.Sprint(time.Now().Year()), "Year of the challenge")
 	day := flag.String("day", "1", "Day of the challenge")
 	part := flag.String("part", "1", "Part of the challenge")
-	input := flag.String("input", "sample", "Puzzle input type (input or sample)")
 	flag.Parse()
 
 	args := Args{
-		day:   *day,
-		part:  *part,
-		input: *input,
-		year:  *year,
+		day:  *day,
+		part: *part,
+		year: *year,
 	}
 
 	path, err := args.getPath()
@@ -37,8 +34,6 @@ func ProcessArgs() Args {
 	}
 
 	args.path = path
-
-	fmt.Println("Using input type:", args.input)
 
 	return args
 }

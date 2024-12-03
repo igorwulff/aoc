@@ -62,7 +62,7 @@ func (p PluginProcessor) RunTests() {
 
 func (p PluginProcessor) GetInput() (*[]byte, error) {
 	// Determine the input file path
-	path := filepath.Join("./", p.Args.year, "day"+p.Args.day, p.Args.input+".txt")
+	path := filepath.Join("./", p.Args.year, "day"+p.Args.day, "input.txt")
 
 	// Read the input file
 	data, err := os.ReadFile(path)

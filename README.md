@@ -7,6 +7,8 @@ This repository provides a framework and helper tools to streamline the process 
 - `internal/processor.go`: Contains the `PluginProcessor` struct and methods for building plugins, calling functions within those plugins, running tests, and getting input data.
 - `internal/input.go`: Contains the `Args` struct and functions for processing command-line arguments and determining file paths.
 - `runner.go`: The main entry point that ties everything together by processing arguments, building the plugin, getting input, running tests, and calling the solution function.
+- It is expected to set up a folder structure following the pattern: `/year/day/partnumber.go`. For example, for the first part of the first day's challenge in 2024, the file should be located at `/2024/day1/part1.go`.
+- It is expected to add test files for each day. As a minimal it is adviced to add a test case for each part of a day based on the sample input and output provided by `Advent of Code`.
 
 ## Usage
 
@@ -21,11 +23,11 @@ This repository provides a framework and helper tools to streamline the process 
 To run the tool, use the following command:
 
 ```sh
-go run runner.go -year=2023 -day=1 -part=1 -input=sample
+go run runner.go -year=2024 -day=1 -part=1
 ```
 
 This command will:
-- Process the arguments for year 2023, day 1, part 1, and use the sample input.
+- Process the arguments for year 2024, day 1, part 1, and use the sample input.
 - Build the plugin for the specified challenge.
 - Read the sample input file.
 - Run tests for the specified challenge.
