@@ -10,7 +10,8 @@ import (
 )
 
 type PluginProcessor struct {
-	Args Args
+	Args      Args
+	Benchmark *BenchmarkResult
 }
 
 func (p PluginProcessor) Build() error {
@@ -18,7 +19,7 @@ func (p PluginProcessor) Build() error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	fmt.Printf("\nCreating plugin: %s\n", cmd.String())
+	fmt.Printf("\nBuilding: %s", cmd.String())
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("error running command: %v", err)
 	}
@@ -41,7 +42,7 @@ func (p PluginProcessor) CallFunc(input *[]byte) (string, error) {
 	// Assert that the symbol is a function with the expected signature
 	processFunc, ok := symProcess.(func(string) string)
 	if !ok {
-		return "", fmt.Errorf("unexpected function signature")
+		return "", fmt.Errorf("expected func(string) string, got %T", symProcess)
 	}
 
 	// Call the function with an input variable
@@ -80,11 +81,19 @@ func (p PluginProcessor) GetInput() (*[]byte, error) {
 	return &data, nil
 }
 
-func GetAllPluginProcessors(args Args) ([]PluginProcessor, error) {
-	var baseDir = filepath.Join("./", args.Year)
-	var processors []PluginProcessor
+type Path int
 
-	err := filepath.Walk(baseDir, func(path string, info os.FileInfo, err error) error {
+const (
+	year Path = iota
+	day
+	part
+)
+
+func GetProcessors(args Args) ([]PluginProcessor, error) {
+	dir := filepath.Join("./", args.Year)
+	processors := make([]PluginProcessor, 0)
+
+	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -98,22 +107,22 @@ func GetAllPluginProcessors(args Args) ([]PluginProcessor, error) {
 			return nil
 		}
 
-		if !strings.HasPrefix(parts[1], "day") {
+		if !strings.HasPrefix(parts[day], "day") || (args.Day != "0" && parts[day] != "day"+args.Day) {
 			return nil
 		}
 
-		if !strings.HasPrefix(parts[2], "part") || strings.Contains(parts[2], "test") || !strings.HasSuffix(parts[2], ".go") {
+		if !strings.HasPrefix(parts[part], "part") || strings.Contains(parts[part], "test") || !strings.HasSuffix(parts[part], ".go") {
 			return nil
 		}
 
-		year := parts[0]
-		day := parts[1][3:]
-		part := parts[2][4 : len(parts[2])-3]
+		if args.Part != "0" && parts[part] != "part"+args.Part+".go" {
+			return nil
+		}
 
 		args := Args{
-			Year: year,
-			Day:  day,
-			Part: part,
+			Year: parts[year],
+			Day:  parts[day][3:],
+			Part: parts[part][4 : len(parts[part])-3],
 		}
 		args.path, err = args.getPath()
 		if err != nil {
@@ -121,7 +130,8 @@ func GetAllPluginProcessors(args Args) ([]PluginProcessor, error) {
 		}
 
 		processors = append(processors, PluginProcessor{
-			Args: args,
+			Args:      args,
+			Benchmark: &BenchmarkResult{},
 		})
 
 		return nil
@@ -129,7 +139,6 @@ func GetAllPluginProcessors(args Args) ([]PluginProcessor, error) {
 
 	if err != nil {
 		fmt.Println("Error scanning directories:", err)
-
 		return nil, err
 	}
 

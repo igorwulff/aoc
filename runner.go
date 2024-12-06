@@ -4,75 +4,61 @@ import (
 	"fmt"
 	"os"
 	"text/tabwriter"
-	"time"
 
 	internal "github.com/igorwulff/aoc/internal"
 )
 
-type BenchmarkResult struct {
-	TotalTimeInMs int64
-}
-
-func Run() ([]BenchmarkResult, error) {
+func Run() {
 	args := internal.ProcessArgs()
-	var plugins []internal.PluginProcessor
-	// Benchmarking mode
-	if args.Day == "0" {
-		allPlugins, err := internal.GetAllPluginProcessors(args)
-		if err != nil {
-			fmt.Println(err)
-			return nil, err
-		}
-		plugins = append(plugins, allPlugins...)
-	} else {
-		plugins = append(plugins, internal.PluginProcessor{Args: args})
+	plugins, err := internal.GetProcessors(args)
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
 
-	results := make([]BenchmarkResult, len(plugins))
-	for i, plugin := range plugins {
-		input, err := plugin.GetInput()
+	for _, p := range plugins {
+		input, err := p.GetInput()
 		if err != nil {
-			fmt.Printf("Could not find input.txt for Day %s Part %s\n", plugin.Args.Day, plugin.Args.Part)
-			return nil, err
+			fmt.Printf("Could not find input.txt for Day %s Part %s\n", p.Args.Day, p.Args.Part)
+			return
 		}
 
-		fmt.Printf("Building day %s part %s... ", plugin.Args.Day, plugin.Args.Part)
-		if err := plugin.Build(); err != nil {
-			fmt.Print("ERROR!\n")
-			fmt.Println(err)
-			return nil, err
-		}
-		fmt.Print("OK!\n")
+		fmt.Printf("Running day %s, part %s", p.Args.Day, p.Args.Part)
 
-		fmt.Print("Executing tests... ")
-		if err := plugin.RunTests(); err != nil {
-			fmt.Print("ERROR!\n")
-			fmt.Println(err)
-			return nil, err
+		if err := p.Build(); err != nil {
+			fmt.Print("ERROR!\n", err)
+			return
 		}
 
-		fmt.Print("Executing main function... ")
-		timeBeforeExec := time.Now().UnixMilli()
-		output, err := plugin.CallFunc(input)
+		if err := p.RunTests(); err != nil {
+			fmt.Print("ERROR!\n", err)
+			return
+		}
+
+		fmt.Println("Trying to solve puzzle...")
+
+		p.Benchmark.StartTimer()
+		output, err := p.CallFunc(input)
 		if err != nil {
-			fmt.Print("ERROR!\n")
-			fmt.Println(err)
-			return nil, err
+			fmt.Print("ERROR!\n", err)
+			return
 		}
-		timeAfterExec := time.Now().UnixMilli()
-		results[i] = BenchmarkResult{TotalTimeInMs: timeAfterExec - timeBeforeExec}
+		p.Benchmark.StopTimer()
 
-		fmt.Printf("Solution: %s\n", output)
+		fmt.Printf("Solution: %s\n\n", output)
 	}
 
-	fmt.Println("Execution finished! Total time:")
+	fmt.Println("Execution finished!")
 	w := tabwriter.NewWriter(os.Stdout, 0, 4, 4, ' ', 0)
-	fmt.Fprintln(w, "Day\tPart\tTime (ms)")
-	for i, plugin := range plugins {
+	fmt.Fprintln(w, "\nDay\tPart\tTime (ms)")
+
+	var sum int64 = 0
+	for _, p := range plugins {
+		sum += p.Benchmark.GetTotalTimeInMs()
 		// @TODO: would be nice to join day & parts in a single row, but for now it's already nice they're alphabetically sorted
-		fmt.Fprintf(w, "%s\t%s\t%d\n", plugin.Args.Day, plugin.Args.Part, results[i].TotalTimeInMs)
+		fmt.Fprintf(w, "%s\t%s\t%d\n", p.Args.Day, p.Args.Part, p.Benchmark.GetTotalTimeInMs())
 	}
 	w.Flush()
 
-	return results, nil
+	fmt.Printf("\nTotal time: %d ms\n", sum)
 }
