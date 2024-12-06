@@ -17,7 +17,7 @@ type Args struct {
 
 func ProcessArgs() Args {
 	year := flag.String("year", fmt.Sprint(time.Now().Year()), "Year of the challenge")
-	day := flag.String("day", "1", "Day of the challenge")
+	day := flag.String("day", "0", "Day of the challenge. 0 to run all days.")
 	part := flag.String("part", "1", "Part of the challenge")
 	flag.Parse()
 
@@ -39,6 +39,10 @@ func ProcessArgs() Args {
 }
 
 func (args Args) getPath() (string, error) {
+	if args.Day == "0" {
+		return "", nil
+	}
+
 	path := filepath.Join("./", args.Year, "day"+args.Day, "part"+args.Part)
 	if _, err := os.Stat(filepath.Dir(path)); os.IsNotExist(err) {
 		return "", fmt.Errorf("the directory %s does not exist", filepath.Dir(path))
