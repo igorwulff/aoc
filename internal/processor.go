@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"plugin"
+	"strings"
 )
 
 type PluginProcessor struct {
@@ -32,7 +33,7 @@ func (p PluginProcessor) CallFunc(input *[]byte) (string, error) {
 	}
 
 	// Look up the Process function
-	symProcess, err := plug.Lookup("Part" + p.Args.part)
+	symProcess, err := plug.Lookup("Part" + p.Args.Part)
 	if err != nil {
 		return "", fmt.Errorf("error looking up process: %v", err)
 	}
@@ -47,8 +48,8 @@ func (p PluginProcessor) CallFunc(input *[]byte) (string, error) {
 	return processFunc(string(*input)), nil
 }
 
-func (p PluginProcessor) RunTests() {
-	cmd := exec.Command("go", "test", fmt.Sprintf("./%s/day%s/", p.Args.year, p.Args.day))
+func (p PluginProcessor) RunTests() error {
+	cmd := exec.Command("go", "test", fmt.Sprintf("./%s/day%s/", p.Args.Year, p.Args.Day))
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
@@ -56,13 +57,15 @@ func (p PluginProcessor) RunTests() {
 
 	if err := cmd.Run(); err != nil {
 		fmt.Println("Tests failed.")
-		return
+		return err
 	}
+
+	return nil
 }
 
 func (p PluginProcessor) GetInput() (*[]byte, error) {
 	// Determine the input file path
-	path := filepath.Join("./", p.Args.year, "day"+p.Args.day, "input.txt")
+	path := filepath.Join("./", p.Args.Year, "day"+p.Args.Day, "input.txt")
 
 	// Read the input file
 	data, err := os.ReadFile(path)
@@ -75,4 +78,60 @@ func (p PluginProcessor) GetInput() (*[]byte, error) {
 	}
 
 	return &data, nil
+}
+
+func GetAllPluginProcessors(args Args) ([]PluginProcessor, error) {
+	var baseDir = filepath.Join("./", args.Year)
+	var processors []PluginProcessor
+
+	err := filepath.Walk(baseDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		parts := strings.Split(path, string(os.PathSeparator))
+		if len(parts) != 3 {
+			return nil
+		}
+
+		if !strings.HasPrefix(parts[1], "day") {
+			return nil
+		}
+
+		if !strings.HasPrefix(parts[2], "part") || strings.Contains(parts[2], "test") || !strings.HasSuffix(parts[2], ".go") {
+			return nil
+		}
+
+		year := parts[0]
+		day := parts[1][3:]
+		part := parts[2][4 : len(parts[2])-3]
+
+		args := Args{
+			Year: year,
+			Day:  day,
+			Part: part,
+		}
+		args.path, err = args.getPath()
+		if err != nil {
+			return err
+		}
+
+		processors = append(processors, PluginProcessor{
+			Args: args,
+		})
+
+		return nil
+	})
+
+	if err != nil {
+		fmt.Println("Error scanning directories:", err)
+
+		return nil, err
+	}
+
+	return processors, nil
 }
