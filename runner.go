@@ -52,13 +52,13 @@ func Run() {
 	w := tabwriter.NewWriter(os.Stdout, 0, 4, 4, ' ', 0)
 	fmt.Fprintln(w, "\nDay\tPart\tTime (ms)")
 
-	var sum int64 = 0
+	var sum float64 = 0.0
 	for _, p := range plugins {
-		sum += p.Benchmark.GetTotalTimeInMs()
+		sum += p.Benchmark.GetTotalTime()
 		// @TODO: would be nice to join day & parts in a single row, but for now it's already nice they're alphabetically sorted
-		fmt.Fprintf(w, "%s\t%s\t%d\n", p.Args.Day, p.Args.Part, p.Benchmark.GetTotalTimeInMs())
+		fmt.Fprintf(w, "%s\t%s\t%v\n", p.Args.Day, p.Args.Part, p.Benchmark.GetTotalTime())
 	}
 	w.Flush()
 
-	fmt.Printf("\nTotal time: %d ms\n", sum)
+	fmt.Printf("\nTotal time: %v ms\n", sum)
 }

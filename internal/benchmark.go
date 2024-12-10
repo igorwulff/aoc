@@ -3,18 +3,18 @@ package internal
 import "time"
 
 type BenchmarkResult struct {
-	TotalTimeInMs int64
-	Start         int64
+	totalTime int64
+	start     int64
 }
 
 func (b *BenchmarkResult) StartTimer() {
-	b.Start = time.Now().UnixMilli()
+	b.start = time.Now().UnixMicro()
 }
 
 func (b *BenchmarkResult) StopTimer() {
-	b.TotalTimeInMs = time.Now().UnixMilli() - b.Start
+	b.totalTime = time.Now().UnixMicro() - b.start
 }
 
-func (b BenchmarkResult) GetTotalTimeInMs() int64 {
-	return b.TotalTimeInMs
+func (b BenchmarkResult) GetTotalTime() float64 {
+	return float64(b.totalTime) / 1000
 }
