@@ -6,6 +6,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"plugin"
+	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -124,6 +126,7 @@ func GetProcessors(args Args) ([]PluginProcessor, error) {
 			Day:  parts[day][3:],
 			Part: parts[part][4 : len(parts[part])-3],
 		}
+
 		args.path, err = args.getPath()
 		if err != nil {
 			return err
@@ -141,6 +144,12 @@ func GetProcessors(args Args) ([]PluginProcessor, error) {
 		fmt.Println("Error scanning directories:", err)
 		return nil, err
 	}
+
+	sort.Slice(processors, func(i, j int) bool {
+		l, _ := strconv.Atoi(processors[i].Args.Day)
+		r, _ := strconv.Atoi(processors[j].Args.Day)
+		return l < r
+	})
 
 	return processors, nil
 }

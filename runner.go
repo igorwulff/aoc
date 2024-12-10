@@ -56,9 +56,9 @@ func Run() {
 	for _, p := range plugins {
 		sum += p.Benchmark.GetTotalTime()
 		// @TODO: would be nice to join day & parts in a single row, but for now it's already nice they're alphabetically sorted
-		fmt.Fprintf(w, "%s\t%s\t%v\n", p.Args.Day, p.Args.Part, p.Benchmark.GetTotalTime())
+		fmt.Fprintf(w, "%s\t%s\t%8.3f\n", p.Args.Day, p.Args.Part, p.Benchmark.GetTotalTime())
 	}
 	w.Flush()
 
-	fmt.Printf("\nTotal time: %v ms\n", sum)
+	fmt.Printf("\nTotal time: %.3f ms\n", sum)
 }
