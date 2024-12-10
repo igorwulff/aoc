@@ -20,6 +20,20 @@ This repository provides a framework and helper tools to streamline the process 
 
 ## Example
 
+The tool can be given 3 arguments:
+```sh
+  -day string
+        Day of the challenge. 0 to run all days. (default "0")
+  -part string
+        Part of the challenge. 0 to run all parts (default "0")
+  -year string
+        Year of the challenge (default "2024")
+```
+
+Where days and parts are optional:
+* If no days are provided, all days will be run.
+* If a day is provided but no parts, all parts of that day will be run.
+
 To run the tool, use the following command:
 
 ```sh
