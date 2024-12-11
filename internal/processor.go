@@ -148,7 +148,7 @@ func GetProcessors(args Args) ([]PluginProcessor, error) {
 	sort.Slice(processors, func(i, j int) bool {
 		l, _ := strconv.Atoi(processors[i].Args.Day)
 		r, _ := strconv.Atoi(processors[j].Args.Day)
-		return l < r
+		return l < r || (l == r && processors[i].Args.Part == "1")
 	})
 
 	return processors, nil
